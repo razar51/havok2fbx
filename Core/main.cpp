@@ -332,7 +332,7 @@ bool CreateScene(FbxManager *pSdkManager, FbxScene* pScene)
     sceneInfo->mKeywords = "havok animation";
     sceneInfo->mComment = "no particular comments required.";
 	
-	FbxAxisSystem directXAxisSys(FbxAxisSystem::EUpVector::eZAxis, FbxAxisSystem::EFrontVector::eParityEven, FbxAxisSystem::eRightHanded);
+	FbxAxisSystem directXAxisSys(FbxAxisSystem::EUpVector::eYAxis, FbxAxisSystem::EFrontVector::eParityEven, FbxAxisSystem::eRightHanded);
 	directXAxisSys.ConvertScene(pScene);
 
     // we need to add the sceneInfo before calling AddThumbNailToScene because
@@ -534,13 +534,14 @@ void AnimateSkeleton(FbxScene* pScene, FbxNode* pSkeletonRoot)
 		m_animation->samplePartialTracks(time, TrackNumber, transformOut.begin(), FloatNumber, floatsOut.begin());
 		hkaSkeletonUtils::normalizeRotations(transformOut.begin(), TrackNumber);
 
-		// assume 1-to-1 transforms
+		// Don't assume 1-to-1 transforms. Check the Binding for which tracks are for which bones
 		// loop through animated bones
 		for (int i=0; i<TrackNumber; ++i)
 		{
 			//const char* CurrentBoneName = m_skeleton->m_bones[i].m_name;
 			//std::string CurBoneNameString = CurrentBoneName;
-			FbxNode* CurrentJointNode = pScene->GetNode(BoneIDContainer[i]);
+			FbxNode* CurrentJointNode = pScene->GetNode(BoneIDContainer[m_binding->m_transformTrackToBoneIndices[i]]);
+
 
 			// create curves on frame zero otherwise just get them
 			if(iFrame == 0)
@@ -569,6 +570,7 @@ void AnimateSkeleton(FbxScene* pScene, FbxNode* pSkeletonRoot)
 			}
 
 			hkQsTransform& transform = transformOut[i];		
+			
 			const hkVector4& anim_pos = transform.getTranslation();
 			const hkQuaternion& anim_rot = transform.getRotation();
 
@@ -595,7 +597,7 @@ void AnimateSkeleton(FbxScene* pScene, FbxNode* pSkeletonRoot)
 			lCurve_Trans_Z->KeyModifyEnd();
 			
 			// Rotation
-			Quat QuatRotNew = {anim_rot.m_vec.getSimdAt(0), anim_rot.m_vec.getSimdAt(1), anim_rot.m_vec.getSimdAt(2), anim_rot.m_vec.getSimdAt(3)};
+			Quat QuatRotNew = { anim_rot.m_vec.getSimdAt(0), anim_rot.m_vec.getSimdAt(1), anim_rot.m_vec.getSimdAt(2), anim_rot.m_vec.getSimdAt(3) };
 			EulerAngles inAngs_Animation = Eul_FromQuat(QuatRotNew, EulOrdXYZs);
 
 			lCurve_Rot_X->KeyModifyBegin();

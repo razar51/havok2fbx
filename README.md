@@ -1,7 +1,13 @@
-Havok 2 FBX Converter 0.1a
+Havok 2 FBX Converter 0.1b
 =============================
 
 Utility to convert Havok 2014-1-0 x32 files to FBX 2014.2.1
+
+Updated to not assume one-to-one 'animation track'-to-bone mapping. Certain havok files will have animations where the number of bones in the 
+skeleton does not equal the number of bones in the animation (for example, FFXIV animations extracted with ffxiv_explorer). 
+There is a mapping/binding in the file that specifies which bone each track is affecting.
+
+This tool has been updated to honor that binding and now should properly match each animation track with the proper bone in the skeleton.
 
 Support
 ---------------------
